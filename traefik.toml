@@ -1,0 +1,28 @@
+debug = true
+checkNewVersion = true
+logLevel = "DEBUG"
+defaultEntryPoints = ["https", "http"]
+
+[accessLog]
+[traefikLog]
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+  [entryPoints.https.tls]
+    [[entryPoints.https.tls.certificates]]
+      certFile = "/etc/traefik/domain.crt"
+      keyFile = "/etc/traefik/domain.key.pem"
+
+# API definition
+[api]
+entryPoint = "traefik"
+dashboard = true
+
+[docker]
+domain = "local"
+watch = true
