@@ -1,0 +1,64 @@
+# Fichiers d'environnement
+.env
+.env.*
+!.env.example
+
+# Certificats et clés
+*.pem
+*.key
+*.crt
+*.csr
+*.srl
+config/traefik/certs/
+
+# Données des projets
+projects/*
+!projects/.gitkeep
+
+# Sauvegardes
+backups/
+dumps/
+
+# Logs
+logs/
+*.log
+
+# Données des conteneurs
+data/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# IDEs et éditeurs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Dépendances Node.js
+node_modules/
+
+# Fichiers de build PHP
+vendor/
+composer.lock
+
+# Fichiers temporaires
+tmp/
+temp/
+*.tmp
+
+# Volumes Docker
+volumes/
+
+# Fichiers de configuration spécifiques à l'environnement
+config/**/local.*
+config/**/*.local.*
+
+# Fichiers de monitoring générés
+grafana.db
+prometheus/data/
+
+# Base de données SQLite (si utilisée)
+*.sqlite
+*.db
