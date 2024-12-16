@@ -92,7 +92,7 @@ php-shell:
 	@echo "${_CYAN}Ouverture du shell PHP...${_END}"
 	@$(DOCKER_COMPOSE) exec apache-php bash
 
-node-shell
+node-shell:
 	@echo "${_CYAN}Ouverture du shell Node.js...${_END}"
 	@$(DOCKER_COMPOSE) exec nodejs bash
 
@@ -132,6 +132,7 @@ clean:
 		echo "${_CYAN}Opération annulée${_END}"
 	fi
 
+# VPN
 vpn-install:
 	@echo "${_CYAN}Installation de Wireguard...${_END}"
 	@chmod +x install-wireguard.sh
@@ -147,3 +148,81 @@ vpn-client:
 vpn-status:
 	@echo "${_CYAN}État de WireGuard${_END}"
 	@sudo wg show
+
+# Monitoring
+monitoring-up:
+	@echo "${_CYAN}Démarrage des services de monitoring...${_END}"
+	@docker-compose up -d portainer prometheus grafana
+	@echo "${_GREEN}Services de monitoring démarrés !${_END}"
+
+monitoring-status:
+	@echo "${_CYAN}État des services de monitoring :${_END}"
+	@docker-compose ps portainer prometheus grafana
+
+# CI/CD
+gitlab-setup:
+	@echo "${_CYAN}Configuration initiale de Gitlab...${_END}"
+	@docker-compose up -d gitlab
+	@echo "${_YELLOW}Attente du démarrage de Gitlab...${_END}"
+	@sleep 30
+	@echo "${_GREEN}Gitlab est prêt ! Access : https://gitlab.localhost${_END}"
+	@echo "${_YELLOW}Mot de passe root : voir GITLAB_ROOT_PASSWORD dans .env${_END}"
+
+# Backup
+backup-now:
+	@echo "${_CYAN}Démarrage de la sauvegarde...${_END}"
+	@docker-compose run --rm backup backup
+	@echo "${_GREEN}Sauvegarde terminée !${_END}"
+
+backup-list:
+	@echo "${_CYAN}Liste des sauvegardes disponibles :${_END}"
+	@ls -lh backups/
+
+backup-restore:
+	@if [ -z "$(file)" ]; then \
+		echo "${_RED}Erreur: Spécifiez le fichier de sauvegarde avec file=FILENAME${_END}"; \
+		exit 1; \
+	fi
+	@echo "${_CYAN}Restauration de la sauvegarde $(file)...${_END}"
+	@docker-compose down
+	@docker-compose run --rm backup restore $(file)
+	@docker-compose up -d
+	@echo "${_GREEN}Restauration terminée !${_END}"
+
+# Sécurité
+security-scan:
+	@echo "${_CYAN}Analyse de sécurité des containers...${_END}"
+	@docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image $(docker ps -q)
+	@echo "${_GREEN}Analyse terminée !${_END}"
+
+security-update:
+	@echo "${_CYAN}Mise à jour des certificats SSL...${_END}"
+	@make ssl
+	@echo "${_CYAN}Mise à jour des configurations de sécurité...${_END}"
+	@docker-compose restart traefik
+	@echo "${_GREEN}Mise à jour terminée !${_END}"
+
+# Documentation
+docs-serve:
+	@echo "${_CYAN}Démarrage du serveur de documentation...${_END}"
+	@docker-compose up -d mkdocs
+	@echo "${_GREEN}Documentation disponible sur http://docs.localhost ${_END}"
+
+# Logs
+logs-all:
+	@docker-compose logs -f
+
+logs-monitoring:
+	@docker-compose logs -f portainer prometheus grafana
+
+# Nettoyage
+clean-all: down
+	@echo "${_CYAN}Attention: Cette action va supprimer tous les volumes et données${_END}"
+	@read -p "Êtes-vous sûr ? [y/N]" confirmation; \
+	if [ "$$confirmation" = "y"] || [ "$$confirmation" = "Y" ]; then \
+		docker-compose down -v --remove-orphans; \
+		rm -rf backups/*; \
+		echo "${_GREEN}Nettoyage complet effectué !${_END}"; \
+	else \
+		echo "${_CYAN}Opération annulée${_END}"; \
+	fi

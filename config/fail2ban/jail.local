@@ -16,3 +16,12 @@ port = http,https
 filter = traefik-auth
 logpath = /var/log/traefik/access.log
 maxretry = 5
+
+[gitlab]
+enabled = true
+port = http,https
+filter = gitlab
+logpath = /var/log/gitlab/gitlab-rails/auth.log
+maxretry = 5
+findtime = 5m
+bantime = 1h
