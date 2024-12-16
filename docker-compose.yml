@@ -107,8 +107,8 @@ services:
         networks:
             - backend
         labels:
-            - traefik.frontend.rule=Host:pgadmin.localhost
-            - traefik.port=80
+            - "traefik.frontend.rule=Host:pgadmin.localhost"
+            - "traefik.port=80"
 
     apache-php:
         image: arm64v8/php:${PHP_VERSION}-apache
@@ -123,8 +123,8 @@ services:
             - PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT}
             - PHP_MAX_EXECUTION_TIME=${PHP_MAX_EXECUTION_TIME}
         labels:
-            - traefik.frontend.rule=Host:php.localhost
-            - traefik.port=80
+            - "traefik.frontend.rule=Host:php.localhost"
+            - "traefik.port=80"
 
     nodejs:
         image: arm64v8/node:${NODE_VERSION}
@@ -135,8 +135,171 @@ services:
             - backend
         command: tail -f /dev/null
         labels:
-            - traefik.frontend.rule=Host:node.localhost
-            - traefik.port=3000
+            - "traefik.frontend.rule=Host:node.localhost"
+            - "traefik.port=3000"
+
+    code-server:
+        image: arm64v8/code-server:latest
+        container_name: vscode-server
+        environment:
+            - PASSWORD=${CODE_SERVER_PASSWORD}
+        volumes:
+            - ${PROJECT_ROOT}:/home/coder/project
+            - ~/.ssh:/home/coder/.ssh:ro
+            - vscode-extensions:/home/coder/.local/share/code-server/extensions
+        ports:
+            - "8080:8080"
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:vscode.localhost"
+            - "traefik.port=8080"
+        restart: unless-stopped
+
+    syncthing:
+        image: syncthing/syncthing
+        container_name: syncthing
+        volumes:
+            - ${PROJECT_ROOT}:/var/syncthing
+        ports:
+            - "8384:8384"
+            - "22000:22000"
+            - "21027:21027/udp"
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:syncthing.localhost"
+            - "traefik.port=8384"
+    
+    portainer:
+        image: portainer/portainer-ce:linux-arm64
+        container_name: portainer
+        restart: always
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - portainer_data:/data
+        ports:
+            - "9000:9000"
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:portainer.localhost"
+
+    grafana:
+        image: grafana/grafana:latest
+        container_name: grafana
+        restart: always
+        volumes:
+            - grafana_data:/var/lib/grafana
+        environment:
+            - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:grafana.localhost"
+
+    prometheus:
+        image: prom/prometheus:latest
+        container_name: prometheus
+        volumes:
+            - ./prometheus.yml:/etc/prometheus/prometheus.yml
+            - prometheus_data:/prometheus
+        command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
+        networks:
+            - backend
+
+    adminer:
+        image: adminer:latest
+        container_name: adminer
+        restart: always
+        ports:
+            - "8082:8080"
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:adminer.localhost"
+
+    filebrowser:
+        image: filebrowser/filebrowser:latest
+        container_name: filebrowser
+        restart: always
+        volumes:
+            - ${PROJECT_ROOT}:/srv
+            - ./filebrowser.db:/database.db
+        environment:
+            - FB_BASEURL=""
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:filebrowser.localhost"
+
+    gitlab:
+        image: gitlab/gitlab-ce:latest
+        container_name: gitlab
+        restart: always
+        hostname: gitlab.localhost
+        environment:
+            GITLAB_OMNIBUS_CONFIG: |
+                external_url 'http://gitlab.localhost'
+                gitlab_rails['gitlab_shell_ssh_port'] = 2224
+                gitlab_rails['initial_root_password'] = '${GITLAB_ROOT_PASSWORD}'
+        ports:
+            - "2224:22"
+        volumes:
+            - gitlab/config:/etc/gitlab
+            - gitlab/logs:/var/log/gitlab
+            - gitlab/data:/var/opt/gitlab
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:gitlab.localhost"
+
+    gitlab-runner:
+        image: gitlab/gitlab-runner:latest
+        container_name: gitlab-runner
+        restart: always
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - ./gitlab-runner/config:/etc/gitlab-runner
+        networks:
+            - backend
+
+    mkdocs:
+        image: squidfunk/mkdocs-material
+        container_name: docs
+        volumes:
+            - ./docs:/docs
+        ports:
+            - "8000:8000"
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:mkdoc.localhost"
+
+    backup:
+        image: offen/docker-volume-backup:latest
+        container_name: backup
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - mariadb:/backup/mariadb:ro
+            - postgres:/backup/postgres:ro
+            - gitlab_data:/backup/gitlab:ro
+            - ./backups:/backups
+        environment:
+            - BACKUP_CRON_EXPRESSION: "${BACKUP_SCHEDULE:-0 4 * * *}"
+            - BACKUP_FILENAME: "backup-%Y%m%d"
+            - BACKUP_RETENTION_DAYS: "${BACKUP_RETENTION_DAYS:-7}"
+
 
 
 networks:
@@ -148,3 +311,12 @@ volumes:
         driver: local
     postgres:
         driver: local
+    vscode-extensions:
+        driver: local
+    portainer_data:
+    grafana_data:
+    prometheus_data:
+    gitlab_data:
+    gitlab_config:
+    gitlab_logs:
+    gitlab_runner_config:

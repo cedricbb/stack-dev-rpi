@@ -43,6 +43,10 @@ help:
 	@echo " ${_BOLD}make restore${_END}			- Restaure la derniére sauvegarde"
 	@echo "\n${_GREEN}${_BOLD}Nettoyage :${_END}"
 	@echo " ${_BOLD}make clean${_END}			- Supprime tous les containers et volumes"
+	@echo "\n${_GREEN}${_BOLD}VPN :${_END}"
+	@echo " ${_BOLD}make vpn-install${_END}		- Installe WireGuard"
+	@echo " ${_BOLD}make vpn-client${_END}		- Génère la configuration client"
+	@echo " ${_BOLD}make vpn-status${_END}		- Affiche l'état de Wireguard"
 	@echo "\n"
 
 install:
@@ -65,7 +69,7 @@ up:
 	@make status
 
 down:
-	@echo "${_CYAN}Arrçet des services...${_END}"
+	@echo "${_CYAN}Arrêt des services...${_END}"
 	@$(DOCKER_COMPOSE) down
 	@echo "${_GREEN}Services Arrêtés !${_END}"
 
@@ -74,7 +78,7 @@ restart:
 	@make up
 
 status:
-	@echo "${_CYAN}Etat des services :${_END}"
+	@echo "${_CYAN}État des services :${_END}"
 	@$(DOCKER_COMPOSE) ps
 
 logs:
@@ -119,7 +123,7 @@ restore:
 
 clean:
 	@echo "${-_YELLOW}Attention: Cette action va supprimer tous les containers et volumes${_END}"
-	@read -p "Etes-vous sûr ? [y/N]" confirmation; \
+	@read -p "Êtes-vous sûr ? [y/N]" confirmation; \
 	if [ "$$confirmation" = "y"] || [ "$$confirmation" = "Y" ]; then \
 		echo "${_CYAN}Suppression des containers...${_END}"; \
 		$(DOCKER_COMPOSE) down -v --remove-orphans; \
@@ -127,3 +131,19 @@ clean:
 	else \
 		echo "${_CYAN}Opération annulée${_END}"
 	fi
+
+vpn-install:
+	@echo "${_CYAN}Installation de Wireguard...${_END}"
+	@chmod +x install-wireguard.sh
+	@sudo ./install-wireguard.sh
+	@echo "${_GREEN}Wireguard installé !${_END}"
+
+vpn-client:
+	@echo "${_CYAN}Génération de la configuration client...${_END}"
+	@echo "Client public key: $(shell sudo cat /etc/wireguard/pulic.key)"
+	@echo "Server IP: $(shell curl -s ifconfig.me)"
+	@echo "${_YELLOW}Utilisez ces informations pour configurer le client WireGuard${_END}"
+
+vpn-status:
+	@echo "${_CYAN}État de WireGuard${_END}"
+	@sudo wg show
