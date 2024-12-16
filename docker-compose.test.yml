@@ -1,0 +1,25 @@
+version: '3.3'
+services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - NODE_ENV=test
+      - MYSQL_HOST=mariadb-test
+      - POSTGRES_HOST=postgres-test
+    depends_on:
+      - mariadb-test
+      - postgres-test
+
+  mariadb-test:
+    image: arm64v8/mariadb:10.5
+    environment:
+    - MYSQL_ROOT_PASSWORD=test
+    - MYSQL_DATABASE=test
+
+  postgres-test:
+    image: arm64v8/postgres:16.3-alpine
+    environment:
+    - POSTGRES_PASSWORD=test
+    - POSTGRES_DB=test
