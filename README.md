@@ -4,16 +4,46 @@ Cette stack de développement est conçue pour fonctionner sur Raspberry Pi(ARM6
 
 ## 📋 Sommaire
 
+- Fonctionnalités
 - Prérequis
-- Services disponibles
 - Installation
+- Configuration
 - Utilisation
+- Sécurité
+- Monitoring
 - Structure des Dossiers
 - Accès aux services
 - Commandes make
 - Gestion des projets
 - Sauvegarde et Restauration
 - Dépannage
+
+## 🚀 Fonctionnalités
+
+- Environnements de développement
+    - PHP 8.3 avec Apache
+    - Node.js 20
+    - MariaDB 10.3
+    -PostgreSQL 16.3
+    - Redis 5
+- Outils de développement
+    - VS Code Server
+    - Gitlab CE
+    - PHPMyAdmin
+    - PgAdmin
+    - MailHog
+- Monitoring
+    - Prometheus
+    - Grafana
+    - Alertmanager
+    - Node Exporter
+    - cAdvisor
+- Sécurité
+    - Traefik avec SSL
+    - Fail2ban
+    -AppArmor
+    - UFW
+    - Audit système
 
 ## ⚙️ Prérequis
 
@@ -29,73 +59,72 @@ sudo apt-get update
 sudo apt-get install -y docker.io docker-compose make git
 ```
 
-## 🚀 Services disponibles
-
-- Serveurs Web
-    - Apache + PHP 8.3
-    - Node.js 20
-- Bases de Données
-    - MariaDB 10.3
-    - PostgresSQL 16.3
-    - Redis 5
-- Outils d'Administration
-    - PHPMyAdmin
-    - PgAdmin
-    - Traefik (reverse proxy)
-    - MailHog (serveur SMTP de test)
-
 ## 📥 Installation
     
 1.Cloner le dépot:<br>
 
-```git
+```bash
 git clone <repo-url> stack-dev
 cd stack-dev
 ```
 
-2.Installation initiale:<br>
+2.Lancer l'installation:<br>
 
+```bash
+chmod +x script/install.sh
+./script/install.sh
 ```
-make install
-```
+L'installation configure automatiquement :
+- La structure des dossiers
+- Les certificats SSL
+- Les réseaux Doccker
+- Les permissions des dossiers
+- Les variables d'environnement
 
-3.Générer les certificats SSL:<br>
+## 🔧 Configuration
 
-```
-make ssl
-```
+### Variables d'environnement
 
-4.Créér et configurer le fichier .env:<br>
-
-```
+Copiez .env.example vers .env :
+```bash
 cp .env.example .env
 ```
 
-5.Démarrer les services:
+Principales variables à configurer :
+```bash
+# Base de données
+DATABASE_PASSWORD=votre_mot_de_passe
+POSTGRES_DATABASE_PASSWORD=votre_mot_de_passe
 
-```
-make up
+# Monitoring
+GRAFANA_PASSWORD=votre_mot_de_passe
+
+# GitLab
+GITLAB_ROOT_PASSWORD=votre_mot_de_passe
 ```
 
 ## 🛠 Utilisation
 
-### Structure des Dossiers
-
-stack-dev/<br>
-├── projects/<br>
-│   ├── php/        #Projets PHP<br>
-│   └── node/       #Projets Node.js<br>
-├── dumps/          #Sauvegardes des bases de données<br>
-├── traefik/        #Configuration et certificats Traefik<br>
-└── docker-compose.yml
+### Démarrage des services
+```bash
+make up
+make status
+make logs
+```
 
 ### Accès aux services
-- Sites web
+- Développement
     - PHP: http://php.localhost
     - Node.js: http://node.localhost
-- Outils
+    - VS Code : http://code.localhost
+- Bases de données
     - PHPMyAdmin: http://phpmyadmin.localhost
     - PgAdmin: http://pgadmin.localhost
+- Monitoring
+    - Prometheus: http://prometheus.localhost
+    - Grafana: http://grafana.localhost
+- Outils
+    - GitLab: http://gitlab.localhost
     - Traefik Dashboard: http://traefik.localhost:8080
     - MailHog: http://mailhog.localhost
 
@@ -161,19 +190,49 @@ npm install
 npm start
 ```
 
+### 🔒 Sécurité
+
+### Certificats SSL
+```bash
+make ssl
+```
+
+### Pare-feu
+```bash
+make security-scan
+make security-update
+```
+
+## 📊 Monitoring
+
+### Dashboards Grafana
+- Docker Containers
+- System Resources
+- Application Metrics
+
+### Alertes
+- Configurées dans Prometheus
+- Notifications via Discord/Slack
+
 ## 💾 Sauvegarde et restauration
 
 ### Créer une sauvegarde
-```make
+```bash
 make backup
+make backup-list
+make restore file=backup_name
 # Les sauvegardes sont stockées dans dumps/DATE/
 ```
 
-### Restaurer une sauvegarde
-```make
-# Exemple: restaurer la sauvegarde du 2024-12-14-10-30-00
-make restore dump=2024-12-14-10-30-00
+### 👨‍💻 Développement à Distance
+1. Connexion via VPN
+```bash
+make vpn-install
+make vpn-client
 ```
+2. VS Code :
+- Installer l'extension "Remote-SSH"
+- Se connecter via le VPN
 
 ## 🔧 Dépannage
 
@@ -200,13 +259,19 @@ make restart
 ### Problèmes de permissions
 ```make
 # Corriger les permissions des dossiers de projets
-sudo chown -R $(whoami):$(whoami) projects/
+make fix-permissions
 ```
 
-### 🔒 Sécurité
-- Les mots de passe par défaut doivent être changés en production
-- Les certificats SSL sont auto-signés (pour le développement uniquement)
-- L'accès aux outils d'administration devrait être restreint en production
+## 🤝  Contribution
+1. Fork le projet
+2. Créer une branche
+3. Commit les changements
+4. Push vers la branche
+5. Créer une Pull Request
+
+## 📝 License
+
+Ce projet est sous licence MIT. Voir le fichier LICENSE pour plus de détails.
 <hr>
 
 Pour plus d'aide ou de documentation, consultez le Makefile (make help) ou ouvrez une issue sur le dépôt.
