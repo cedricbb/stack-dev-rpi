@@ -9,13 +9,12 @@ Cette stack de développement est conçue pour fonctionner sur Raspberry Pi(ARM6
 - Installation
 - Configuration
 - Utilisation
-- Sécurité
-- Monitoring
-- Structure des Dossiers
-- Accès aux services
 - Commandes make
 - Gestion des projets
+- Sécurité
+- Monitoring
 - Sauvegarde et Restauration
+- Développement à Distance
 - Dépannage
 
 ## 🚀 Fonctionnalités
@@ -190,7 +189,7 @@ npm install
 npm start
 ```
 
-### 🔒 Sécurité
+## 🔒 Sécurité
 
 ### Certificats SSL
 ```bash
@@ -224,7 +223,7 @@ make restore file=backup_name
 # Les sauvegardes sont stockées dans dumps/DATE/
 ```
 
-### 👨‍💻 Développement à Distance
+## 👨‍💻 Développement à Distance
 1. Connexion via VPN
 ```bash
 make vpn-install
