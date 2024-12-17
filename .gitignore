@@ -4,11 +4,6 @@
 !.env.example
 
 # Certificats et clés
-*.pem
-*.key
-*.crt
-*.csr
-*.srl
 config/traefik/certs/
 
 # Données des projets
