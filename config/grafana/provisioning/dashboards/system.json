@@ -1,0 +1,58 @@
+{
+    "dashboard": {
+      "id": null,
+      "title": "System Performance",
+      "tags": ["system", "performance"],
+      "timezone": "browser",
+      "panels": [
+        {
+          "title": "CPU Usage",
+          "type": "graph",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "targets": [
+            {
+              "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+              "legendFormat": "CPU %"
+            }
+          ]
+        },
+        {
+          "title": "Memory Usage",
+          "type": "graph",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "targets": [
+            {
+              "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100",
+              "legendFormat": "Memory %"
+            }
+          ]
+        },
+        {
+          "title": "Disk Usage",
+          "type": "gauge",
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 8
+          },
+          "targets": [
+            {
+              "expr": "100 - ((node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes)",
+              "legendFormat": "Disk %"
+            }
+          ]
+        }
+      ]
+    }
+  }

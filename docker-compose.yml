@@ -300,7 +300,92 @@ services:
             - BACKUP_FILENAME: "backup-%Y%m%d"
             - BACKUP_RETENTION_DAYS: "${BACKUP_RETENTION_DAYS:-7}"
 
+    react-dev:
+        image: node:20-alpine
+        container_name: react-dev
+        working_dir: /app
+        volumes:
+            - ./projects/react:/app
+        ports:
+            - "{REACT_PORT:-3000}:3000"
+        environment:
+            - NODE_ENV=development
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:react.localhost"
+            - "traefik.port=3000"
 
+    next-dev:
+        image: node:20-alpine
+        container_name: next-dev
+        working_dir: /app
+        volumes:
+            - ./projects/next:/app
+        ports:
+            - "{NEXT_PORT:-3001}:3000"
+        environment:
+            - NODE_ENV=development
+        command: sh -c "npm install && npm run dev"
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:next.localhost"
+            - "traefik.port=3000"
+
+    nuxt-dev:
+        image: node:20-alpine
+        container_name: nuxt-dev
+        working_dir: /app
+        volumes:
+            - ./projects/nuxt:/app
+        ports:
+            - "{NUXT_PORT:-3002}:3000"
+        environment:
+            - NODE_ENV=development
+        command: sh -c "npm install && npm run dev"
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:nuxt.localhost"
+            - "traefik.port=3000"
+
+    angular-dev:
+        image: node:20-alpine
+        container_name: angular-dev
+        working_dir: /app
+        volumes:
+            - ./projects/angular:/app
+        ports:
+            - "{ANGULAR_PORT:-4200}:4200"
+        environment:
+            - NODE_ENV=development
+        command: sh -c "npm install && ng serve --host 0.0.0.0"
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:angular.localhost"
+            - "traefik.port=4200"
+
+    flutter-dev:
+        image: cirrusci/flutter:stable
+        container_name: flutter-dev
+        working_dir: /app
+        volumes:
+            - ./projects/flutter:/app
+        ports:
+            - "{FLUTTER_PORT:-8090}:8090"
+        command: sh -c "flutter pub get && flutter run -d web-server --web-port 8090 --web-hostname 0.0.0.0"
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:flutter.localhost"
+            - "traefik.port=8090"
 
 networks:
     backend:

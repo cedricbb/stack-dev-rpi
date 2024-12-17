@@ -116,6 +116,11 @@ make logs
     - PHP: http://php.localhost
     - Node.js: http://node.localhost
     - VS Code : http://code.localhost
+    - React: http://react.localhost
+    - Next.js: http://next.localhost
+    - Nuxt: http://nuxt.localhost
+    - Angular: http://angular.localhost
+    - Flutter: http://flutter.localhost
 - Bases de données
     - PHPMyAdmin: http://phpmyadmin.localhost
     - PgAdmin: http://pgadmin.localhost
