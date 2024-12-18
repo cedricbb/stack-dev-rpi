@@ -23,50 +23,35 @@ DATE := $(shell date +%Y-%m-%d-%H-%M-%S)
 help:
 	@echo "\n${_BOLD}Stack de Développement - Commandes disponibles${_END}\n"
 	@echo "${_GREEN}${_BOLD}Installation et configuration :${_END}"
-	@echo " ${_BOLD}make install${_END}			- Prépare l'environnement (crée les dossiers et le réseau)"
-	@echo " ${_BOLD}make ssl${_END}				- Génère les certificats SSL"
-	@echo "\n${_GREEN}${_BOLD}Gestion des containers :${_END}"
-	@echo " ${_BOLD}make up${_END}				- Démarre tous les services"
-	@echo " ${_BOLD}make down${_END}			- Arrête tous les services"
-	@echo " ${_BOLD}make restart${_END}			- Redémarre tous les services"
-	@echo " ${_BOLD}make status${_END}			- Affiche l'état des services"
-	@echo "\n${_GREEN}${_BOLD}Logs :${_END}"
-	@echo " ${_BOLD}make logs${_END}			- Affiche les logs de tous les services"
-	@echo " ${_BOLD}make logs s=SERVICE${_END}	- Affiche les logs d'un service spécifique"
-	@echo "\n${_GREEN}${_BOLD}Accès aux shells :${_END}"
-	@echo " ${_BOLD}make php-shell${_END}		- Ouvre un shell dans le container PHP"
-	@echo " ${_BOLD}make node-shell${_END}		- Ouvre un shell dans le container Node.js"
-	@echo " ${_BOLD}make mysql-shell${_END}		- Ouvre un shell MySQL"
-	@echo " ${_BOLD}make postgres-shell${_END}	- Ouvre un shell PostgresSQL"
-	@echo "\n${_GREEN}${_BOLD}Sauvegarde et restauration :${_END}"
-	@echo " ${_BOLD}make backup${_END}			- Sauvegarde toutes les bases de données"
-	@echo " ${_BOLD}make restore${_END}			- Restaure la derniére sauvegarde"
-	@echo "\n${_GREEN}${_BOLD}Nettoyage :${_END}"
-	@echo " ${_BOLD}make clean${_END}			- Supprime tous les containers et volumes"
-	@echo "\n${_GREEN}${_BOLD}VPN :${_END}"
-	@echo " ${_BOLD}make vpn-install${_END}		- Installe WireGuard"
-	@echo " ${_BOLD}make vpn-client${_END}		- Génère la configuration client"
-	@echo " ${_BOLD}make vpn-status${_END}		- Affiche l'état de Wireguard"
+	@echo "  make install         - Installation initiale"
+	@echo "  make ssl            - Générer les certificats SSL"
+	@echo "  make update         - Mettre à jour la stack"
+	@echo "\n${_GREEN}${_BOLD}Gestion des services :${_END}"
+	@echo "  make up             - Démarrer les services"
+	@echo "  make down           - Arrêter les services"
+	@echo "  make restart        - Redémarrer les services"
+	@echo "  make status         - État des services"
+	@echo "  make logs           - Voir les logs"
 	@echo "\n${_GREEN}${_BOLD}Monitoring :${_END}"
-	@echo " ${_BOLD}make monitoring-up${_END}	- Démarre les services de monitoring"
-	@echo " ${_BOLD}make monitoring-status${_END}	- Affiche l'état des services de monitoring"
-	@echo "\n${_GREEN}${_BOLD}CI/CD :${_END}"
-	@echo " ${_BOLD}make gitlab-setup${_END}	- Configure Gitlab"
+	@echo "  make monitor-health - Vérifier la santé"
+	@echo "  make metrics-check  - Vérifier les métriques"
+	@echo "\n${_GREEN}${_BOLD}Base de données :${_END}"
+	@echo "  make mysql-check    - Vérifier MariaDB"
+	@echo "  make postgres-check - Vérifier PostgreSQL"
+	@echo "\n${_GREEN}${_BOLD}Sécurité :${_END}"
+	@echo "  make security-scan  - Scanner la sécurité"
+	@echo "  make security-update- Mettre à jour la sécurité"
 	@echo "\n${_GREEN}${_BOLD}Backup :${_END}"
-	@echo " ${_BOLD}make backup-now${_END}		- Sauvegarde les bases de données"
-	@echo " ${_BOLD}make backup-list${_END}		- Liste les sauvegardes disponibles"
-	@echo " ${_BOLD}make backup-restore${_END}	- Restaure une sauvegarde"
-	@echo "\n${_GREEN}${_BOLD}Makefile :${_END}"
-	@echo " ${_BOLD}make help${_END}			- Affiche cette aide"
-	@echo " ${_BOLD}make test-all${_END}		- Exécute tous les tests"
-	@echo " ${_BOLD}make validate-config${_END}	- Valide les fichiers de configuration"
-	@echo "\n"
+	@echo "  make backup         - Créer une sauvegarde"
+	@echo "  make restore        - Restaurer une sauvegarde"
 
 install:
 	@echo "${_CYAN}Création des dossiers...${_END}"
-	@mkdir -p projects/php projects/node dumps traefik
+	mkdir -p config/{prometheus,grafana,traefik/certs,nginx,php,mariadb,postgres,redis}
+	mkdir -p projects/{php,node,react,next,nuxt,angular,flutter}
+	mkdir -p backups logs/{traefik, nginx, fail2ban} data/{grafana, prometheus, gitlab, portainer}
 	@echo "${_CYAN}Création du réseau docker...${_END}"
-	@docker network create backend || true
+	docker network create backend || true
 	@echo "${_GREEN}Installation terminée !${_END}"
 
 ssl:
@@ -172,6 +157,24 @@ monitoring-status:
 	@echo "${_CYAN}État des services de monitoring :${_END}"
 	@docker-compose ps portainer prometheus grafana
 
+monitor-health:
+	@echo "${_CYAN}Vérification de l'état des services...${_END}"
+	@docker-compose ps
+	@docker stats --no-stream
+
+metrics-check:
+	@echo "${_CYAN}Vérification des métriques...${_END}"
+	@curl -s http://localhost:9090/-/healthly
+
+grafana-check:
+	@echo "${_CYAN}Vérification de Grafana...${_END}"
+	@curl -s http://grafana.localhost/api/health
+
+grafana-backup:
+	@echo "${_CYAN}Sauvegarde de Grafana...${_END}"
+	@mkdir -p backups/grafana/${DATE}
+	@docker-compose exec grafana grafana-cli admin export-dashboard > backups/grafana/${DATE}/dashboard.json
+
 # CI/CD
 gitlab-setup:
 	@echo "${_CYAN}Configuration initiale de Gitlab...${_END}"
@@ -202,6 +205,21 @@ backup-restore:
 	@docker-compose up -d
 	@echo "${_GREEN}Restauration terminée !${_END}"
 
+backup-verify:
+	@echo "${_CYAN}Vérification de la sauvegarde $(file)...${_END}"
+	@test -d "${BACKUP_DIR}/$(file)" || (echo "${_RED}Erreur: Le fichier de sauvegarde $(file) n'existe pas${_END}" && exit 1)
+	@echo "${_GREEN}Sauvegarde vérifiée${_END}"
+
+restore-debug:
+	@echo "${_CYAN}Restauration en mode debug...${_END}"
+	@make down
+	@make restore file=$(file)
+	@make up@make diagnose
+
+backup-clean:
+	@echo "${_CYAN}Nettoyage des anciennes sauvegardes...${_END}"
+	@find ${BACKUP_DIR}/* -maxdepth 0 -type d -mtime +7 -exec rm -rf {} \;
+
 # Sécurité
 security-scan:
 	@echo "${_CYAN}Analyse de sécurité des containers...${_END}"
@@ -211,9 +229,13 @@ security-scan:
 security-update:
 	@echo "${_CYAN}Mise à jour des certificats SSL...${_END}"
 	@make ssl
-	@echo "${_CYAN}Mise à jour des configurations de sécurité...${_END}"
-	@docker-compose restart traefik
+	@docker-compose pull
+	@make restart
 	@echo "${_GREEN}Mise à jour terminée !${_END}"
+
+ssl-check:
+	@echo "${_CYAN}Vérification des certificats SSL...${_END}"
+	@openssl x509 -in config/traefik/certs/domain.crt -text -noout
 
 # Documentation
 docs-serve:
@@ -239,6 +261,18 @@ clean-all: down
 	else \
 		echo "${_CYAN}Opération annulée${_END}"; \
 	fi
+
+clean-logs:
+	@echo "${_CYAN}Suppression des logs...${_END}"
+	@find ./logs -type f -not -name "*.log" -exec rm {} \;
+
+clean-resources:
+	@echo "${_CYAN}Suppression des ressources inutilisées...${_END}"
+	@docker system prune -a
+
+optimize-containers:
+	@echo "${_CYAN}Optimisation des containers...${_END}"
+	@docker-compose up -d --force-recreate --no-deps ${docker-compose ps -q}
 
 # Test commands
 test-all: test-docker test-services test-security test-monitoring
@@ -358,5 +392,68 @@ apply-config:
 	@echo "${_GREEN}Configuration appliquée avec succès !${_NC}"
 	@echo "${_YELLOW}Important: N'oubliez pas de vérifier les fichiers de configuration et de redémarrer les services si nécessaire.${_NC}"
 
+# Base de données
+mysql-check:
+	@echo "${_CYAN}Vérification de la base de données MariaDB...${_END}"
+	@docker-compose exec mariadb mysqladmin -u root -p${DATABASE_PASSWORD} ping || exit 1
+	@echo "${_GREEN}La base de données MariaDB est opérationnelle.${_END}"
 
+mysql-repair:
+	@echo "${_CYAN}Réparation de la base de données MariaDB...${_END}"
+	@docker-compose exec mariadb mysqlcheck -u root -p${DATABASE_PASSWORD} --auto-repair --all-databases
+	@echo "${_GREEN}Réparation terminée.${_END}"
+
+mysql-optimize:
+	@echo "${_CYAN}Optimisation de la base de données MariaDB...${_END}"
+	@docker-compose exec mariadb mysqlcheck -u root -p${DATABASE_PASSWORD} --optimize --all-databases
+	@echo "${_GREEN}Optimisation terminée.${_END}"
+
+postgres-check:
+	@echo "${_CYAN}Vérification de la base de données PostgreSQL...${_END}"
+	@docker-compose exec postgres pg_isready -U postgres || exit 1
+	@echo "${_GREEN}La base de données PostgreSQL est opérationnelle.${_END}"
+
+postgres-vacuum:
+	@echo "${_CYAN}Nettoyage de la base de données PostgreSQL...${_END}"
+	@docker-compose exec postgres vacuumdb -U postgres --all --analyze
+	@echo "${_GREEN}Nettoyage terminé.${_END}"
 	
+# Diagnostic et dépannage
+diagnose:
+	@echo "${_CYAN}Diagnostic du système...${_END}"
+	@make status
+	@make monitor-health
+	@make mysql-check
+	@make postgres-check
+	@echo "${_GREEN}Diagnostic terminé.${_END}"
+
+deep-analyze:
+	@echo "${_CYAN}Analyse approfondie du système...${_END}"
+	@make security-scan
+	@make metrics-check
+	@docker-compose logs --tail=100
+	@echo "${_GREEN}Analyse terminée.${_END}"
+
+generate-report:
+	@echo "${_CYAN}Génération du rapport...${_END}"
+	@mkdir -p reports/${DATE}
+	@make diagnose > reports/${DATE}/diagnostics.log
+	@make deep-analyze > reports/${DATE}/analysis.log
+	@echo "${_GREEN}Rapport généré dans reports/${DATE}/${_END}"
+
+# Commandes de service
+service-isolate:
+	@echo "${_CYAN}Isolation du service $(s)...${_END}"
+	@docker-compose stop $(s)
+	@docker network disconnect backend $(s) || true
+	@echo "${_GREEN}Service isolé.${_END}"
+
+recreate:
+	@echo "${_CYAN}Re-création du service $(s)...${_END}"
+	@docker-compose up -d --force-recreate --no-deps $(s)
+	@echo "${_GREEN}Service re-créé.${_END}"
+
+# Maintenance périodique
+daily-check: monitor-health mysql-check postgres-check
+
+weekly-maintenance: clean-logs optimize-containers backup
