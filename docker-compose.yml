@@ -387,6 +387,53 @@ services:
             - "traefik.frontend.rule=Host:flutter.localhost"
             - "traefik.port=8090"
 
+    bedrock:
+        build:
+            context: ./donfig/bedrock
+            args:
+                PHP_VERSION: ${PHP_VERSION:-8.3}
+        container_name: bedrock
+        restart: always
+        environment:
+            - DB_HOST=mariadb
+            - DB_NAME=${WORDPRESS_DB_NAME:-bedrock}
+            - DB_USER=root
+            - DB_PASSWORD=${DATABASE_PASSWORD}
+            - WP_ENV=${WP_ENV:-development}
+            - WP_HOME=https://${WP_HOST:-bedrock.localhost}
+            - WP_SITEURL=https://${WP_HOST:-bedrock.localhost}/wp
+            - AUTH_KEY=${AUTH_KEY}
+            - SECURE_AUTH_KEY=${SECURE_AUTH_KEY}
+            - LOGGED_IN_KEY=${LOGGED_IN_KEY}
+            - NONCE_KEY=${NONCE_KEY}
+            - AUTH_SALT=${AUTH_SALT}
+            - SECURE_AUTH_SALT=${SECURE_AUTH_SALT}
+            - LOGGED_IN_SALT=${LOGGED_IN_SALT}
+            - NONCE_SALT=${NONCE_SALT}
+        volumes:
+            - ./projects/bedrock:/var/www/html
+            - ./config/bedrock/php.ini:/usr/local/etc/php/conf.d/bedrock.ini
+        networks:
+            - backend
+        labels:
+            - "traefik.enable=true"
+            - "traefik.frontend.rule=Host:bedrock.localhost"
+            - "traefik.port=9000"
+        depends_on:
+            - mariadb
+
+    composer:
+        image: composer:latest
+        container_name: bedrock_composer
+        volumes:
+            - ./projects/bedrock:/app
+        working_dir: /app
+        networks:
+            - backend
+        depends_on:
+            - bedrock
+
+
 networks:
     backend:
         external: true
