@@ -178,7 +178,7 @@ make clean           # Nettoyer tous les containers et volumes
 ## 📂 Gestions des Projets
 
 ### Projets PHP
-1. placez vos fichiers dans projects/php/
+1. placez vos fichiers dans projects/php
 2. Accédez à http://php.localhost
 
 ### Projets Node.js
@@ -188,7 +188,7 @@ make node-shell
 ```
 2. Dans le container:
 ```bash
-cd /app
+cd /projects/node
 npm init
 npm install
 npm start
@@ -201,7 +201,7 @@ make node-shell
 ```
 2. Dans le container:
 ```bash
-cd /app
+cd /projects/react
 npx create-react-app my-app
 cd my-app
 npm start
@@ -214,7 +214,7 @@ make node-shell
 ```
 2. Dans le container:
 ```bash
-cd /app
+cd /projects/next
 npx create-next-app my-app
 cd my-app
 npm run dev
@@ -227,7 +227,7 @@ make node-shell
 ```
 2. Dans le container:
 ```bash
-cd /app
+cd /projects/nuxt
 npx
 create-nuxt-app my-app
 cd my-app
@@ -241,7 +241,7 @@ make node-shell
 ```
 2. Dans le container:
 ```bash
-cd /app
+cd /projects/angular
 ng new my-app
 cd my-app
 ng serve
@@ -254,7 +254,7 @@ make node-shell
 ```
 2. Dans le container:
 ```bash
-cd /app
+cd /projects/flutter
 flutter create my-app
 cd my-app
 flutter run
