@@ -140,7 +140,7 @@ make logs
     - Grafana: http://grafana.localhost
 - Outils
     - GitLab: http://gitlab.localhost
-    - Traefik Dashboard: http://traefik.localhost:8080
+    - Traefik Dashboard: http://traefik.localhost:8081
     - MailHog: http://mailhog.localhost
 
 ### Ports par Défaut

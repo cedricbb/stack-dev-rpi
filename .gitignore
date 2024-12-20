@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+domain.cnf
 
 # Certificats et clés
 config/traefik/certs/

@@ -13,13 +13,13 @@ services-help:
 
 up:
 	@printf "$(_CYAN)Démarrage des services...$(_END)\n"
-	@$(DOCKER_COMPOSE) up -d
+	docker-compose up -d
 	@printf "$(_GREEN)Services démarrés !$(_END)\n"
 	@make status
 
 down:
 	@printf "$(_CYAN)Arrêt des services...$(_END)\n"
-	@$(DOCKER_COMPOSE) down
+	docker-compose down
 	@printf "$(_GREEN)Services Arrêtés !$(_END)\n"
 
 restart:
@@ -28,23 +28,23 @@ restart:
 
 status:
 	@printf "$(_CYAN)État des services :$(_END)\n"
-	@$(DOCKER_COMPOSE) ps
+	docker-compose ps
 
 services-logs:
 	@if [ "$(s)" ]; then \
-		$(DOCKER_COMPOSE) logs -f $(s); \
+		docker-compose logs -f $(s); \
 	else \
-		$(DOCKER_COMPOSE) log* -f; \
+		docker-compose log* -f; \
 	fi
 
 # Commandes de service
 service-isolate:
 	@printf "$(_CYAN)Isolation du service $(s)...$(_END)\n"
-	@docker-compose stop $(s)
+	docker-compose stop $(s)
 	@docker network disconnect backend $(s) || true
 	@printf "$(_GREEN)Service isolé.$(_END)\n"
 
 service-recreate:
 	@printf "$(_CYAN)Re-création du service $(s)...$(_END)\n"
-	@docker-compose up -d --force-recreate --no-deps $(s)
+	docker-compose up -d --force-recreate --no-deps $(s)
 	@printf "$(_GREEN)Service re-créé.$(_END)\n"
