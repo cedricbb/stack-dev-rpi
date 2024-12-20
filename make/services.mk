@@ -11,22 +11,22 @@ services-help:
 	$(call print_command, services-isolate, Isoler un service)
 	$(call print_command, service-recreate, Recréer un service)
 
-services-up:
+up:
 	@printf "$(_CYAN)Démarrage des services...$(_END)\n"
 	@$(DOCKER_COMPOSE) up -d
 	@printf "$(_GREEN)Services démarrés !$(_END)\n"
 	@make status
 
-services-down:
+down:
 	@printf "$(_CYAN)Arrêt des services...$(_END)\n"
 	@$(DOCKER_COMPOSE) down
 	@printf "$(_GREEN)Services Arrêtés !$(_END)\n"
 
-services-restart:
+restart:
 	@make down
 	@make up
 
-services-status:
+status:
 	@printf "$(_CYAN)État des services :$(_END)\n"
 	@$(DOCKER_COMPOSE) ps
 

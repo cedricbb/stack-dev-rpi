@@ -66,8 +66,19 @@ sudo apt-get install -y docker.io docker-compose make git
 git clone <repo-url> stack-dev
 cd stack-dev
 ```
-
-2.Lancer l'installation:<br>
+2.Ajouter l'utilisateur actuel au groupe docker :
+```bash
+sudo usermod -aG docker $USER
+```
+3.Appliquer des changements :
+```bash
+newgrp docker
+```
+4.Vérifier que ça fonctionne :
+```bash
+docker ps
+```
+5.Lancer l'installation:<br>
 
 ```bash
 chmod +x script/install.sh

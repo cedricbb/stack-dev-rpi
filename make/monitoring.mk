@@ -27,7 +27,7 @@ monitoring-status:
 	@printf "$(_CYAN)État des services de monitoring :$(_END)\n"
 	@docker-compose ps portainer prometheus grafana
 
-monitoring-health:
+monitor-health:
 	@printf "$(_CYAN)Vérification de l'état des services...$(_END)\n"
 	@docker-compose ps -a
 	@printf "\nContainer Resource Usage:"

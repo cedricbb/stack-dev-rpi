@@ -37,7 +37,6 @@ DNS.2  = *.localhost
 DNS.3  = traefik.localhost
 DNS.4  = mailhog.localhost
 DNS.5  = phpmyadmin.localhost
-EOF
 
 # Générer la clé privée du CA (Certificate Authority)
 openssl genrsa -out ca.key.pem 2048
