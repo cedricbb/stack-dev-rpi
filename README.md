@@ -53,7 +53,7 @@ Cette stack de développement est conçue pour fonctionner sur Raspberry Pi(ARM6
 
 ### Installation des prérequis sur Raspberry Pi
 
-```
+```bash
 sudo apt-get update
 sudo apt-get install -y docker.io docker-compose make git
 ```
@@ -144,7 +144,7 @@ make logs
 
 ### gestion des services
 
-```make
+```bash
 make up              #Démarrer tous les services
 make down            #Arrêter tous les services
 make restart         #Redémarrer tous les services
@@ -155,7 +155,7 @@ make logs s=SERVICE  #Voir les logs d'un service spécifique
 
 ### Accès aux Shells
 
-```make
+```bash
 make php-shell       #Shell PHP
 make node-shell      #Shell Node.js
 make mysql-shell     #Shell MySQL
@@ -164,14 +164,14 @@ make postgres-shell  #Shell PostgreSQL
 
 ### Sauvegarde et Restauration
 
-```make
+```bash
 make backup          #Sauvegarder les bases de données
 make restore dump=DATE  #Restaurer une sauvegarde
 ```
 
 ### Maintenance
 
-```make
+```bash
 make clean           # Nettoyer tous les containers et volumes
 ```
 
@@ -183,15 +183,81 @@ make clean           # Nettoyer tous les containers et volumes
 
 ### Projets Node.js
 1. Accédez au shell Node.js
-```
+```bash
 make node-shell
 ```
 2. Dans le container:
-```node
+```bash
 cd /app
 npm init
 npm install
 npm start
+```
+
+### Projets React
+1. Accédez au shell Node.js
+```bash
+make node-shell
+```
+2. Dans le container:
+```bash
+cd /app
+npx create-react-app my-app
+cd my-app
+npm start
+```
+
+### Projets Next.js
+1. Accédez au shell Node.js
+```bash
+make node-shell
+```
+2. Dans le container:
+```bash
+cd /app
+npx create-next-app my-app
+cd my-app
+npm run dev
+```
+
+### Projets Nuxt
+1. Accédez au shell Node.js
+```bash
+make node-shell
+```
+2. Dans le container:
+```bash
+cd /app
+npx
+create-nuxt-app my-app
+cd my-app
+npm run dev
+```
+
+### Projets Angular
+1. Accédez au shell Node.js
+```bash
+make node-shell
+```
+2. Dans le container:
+```bash
+cd /app
+ng new my-app
+cd my-app
+ng serve
+```
+
+### Projets Flutter
+1. Accédez au shell Node.js
+```bash
+make node-shell
+```
+2. Dans le container:
+```bash
+cd /app
+flutter create my-app
+cd my-app
+flutter run
 ```
 
 ## 🔒 Sécurité
@@ -241,7 +307,7 @@ make vpn-client
 ## 🔧 Dépannage
 
 ### Les services ne démarrent pas
-```make
+```bash
 # Vérifier les logs
 make logs
 
@@ -254,14 +320,14 @@ make up
 ```
 
 ### Porblèmes de certificats SSL
-```make
+```bash
 # Regénérer les certificats
 make ssl
 make restart
 ```
 
 ### Problèmes de permissions
-```make
+```bash
 # Corriger les permissions des dossiers de projets
 make fix-permissions
 ```
