@@ -1,102 +1,54 @@
-#!make
-include .env
-export $(shell sed 's/=.*//' .env)
+MAKEFLAGS += --no-print-directory
+export TERM=xterm-256color
 
-# Inclusion de tous les modules Makefile
--include make/*.mk
+# Inclusion des variables d'environnement
+include .env
+
+# Définition des modules
+MODULES := install services database wordpress monitoring security backup maintenance tests dev 
+export $(shell sed 's/=.*//' .env)
 
 # Définition des variables globales
 SHELL := /bin/bash
-DOCKER_COMPOSE = docker-compose
 DATE := $(shell date +%Y-%m-%d-%H-%M-%S)
 
-# Liste des modules pour vérification
-MODULES := install services database wordpress monitoring security backup
+# Inclusion des couleurs
+include scripts/colors.sh
 
-# Liste de toutes les commandes pour vérification de l'existence
-COMMANDS := \
-	install ssl generate-password apply-config \
-	up down restart status logs \
-	mysql-check mysql-repair mysql-optimize \
-	postgres-check postgress-vacuum \
-	bedrock-install bedrock-setup bedrock-composer bedrock-theme bedrock-plugin bedrock-update bedrock-dev \
-	monitor-health metrics-check grafana-check grafana-backup \
-	security-scan security-update ssl-check \
-	clean-logs clean-resources optimize-containers \
-	diagnose deep-analyze generate-report \
-	service-isolate recreate \
-	backup backup-verify restore restore-debug backup-clean \
-	daily-check weekly-maintenance
+define print_title
+	@printf "$(_GREEN)$(_BOLD)$(1) :$(_END)\n";
+endef
 
-# Vérification d'existence des commandes
-$(COMMANDS):
-	@if ! grep -q "^$@:" make/*.mk; then \
-		echo "${_RED}Erreur: Commande '$@:' non trouvée dans les modules.${_END}"; \
-		exit 1; \
-	fi
-	@$(MAKE) -f make/$(shell grep -l "^$@:" make/*.mk | head -1) $@
+define print_command
+	@printf "$(_CYAN)make %-30s - %s\n" "$(1)" "$(2)"
+endef
 
-.PHONY: $(COMMANDS) help $(addsuffix -help, $(MODULES))
+# Inclusion de tous les modules Makefile
+-include $(foreach module, $(MODULES), make/$(module).mk)
+
+.PHONY: help $(MODULES) $(foreach module, $(MODULES), $(module)-help)
 
 # Commande d'aide principale
 help:
-	@echo "\n${_BOLD}Stack de Développement - Commandes disponibles${_END}\n"
-	@echo "${_GREEN}${_BOLD}Installation et configuration :${_END}"
-	@make -s install-help
-	@echo "\n${_GREEN}${_BOLD}Gestion des services :${_END}"
-	@make -s services-help
-	@echo "\n${_GREEN}${_BOLD}Monitoring :${_END}"
-	@make -s monitoring-help
-	@echo "\n${_GREEN}${_BOLD}Base de données :${_END}"
-	@make -s database-help
-	@echo "\n${_GREEN}${_BOLD}WordPress/Bedrock :${_END}"
-	@make -s wordpress-help
-	@echo "\n${_GREEN}${_BOLD}Sécurité :${_END}"
-	@make -s security-help
-	@echo "\n${_GREEN}${_BOLD}Backup et restauration :${_END}"
-	@make -s backup-help
-	@echo "\n${_GREEN}${_BOLD}Maintenance :${_END}"
-	@echo "  make daily-check         		- Vérifications quotidiennes"
-	@echo "  make weekly-maintenance        - Maintenance hebdomadaire"
-	@echo "\n${_YELLOW}Pour plus de détails sur un module : make <module>-help${_END}\n"
-
-# Vérification de modules
-check-modules:
+	@printf "\n$(_BOLD)Stack de Développement - Commandes disponibles$(_END)\n\n"
 	@for module in $(MODULES); do \
-		if [ ! -f make/$$module.mk ]; then \
-			echo "${_RED}Erreur : Le module $$module n'existe pas.${_END}"; \
-			exit 1; \
-		fi; \
+		printf "$(_YELLOW)$(_BOLD)Module $$module$(_END)\n"; \
+		$(MAKE) $$module-help 2>/dev/null || true; \
+		printf "\n"; \
 	done
 
-# Initialisation
-init: check-modules
-	@echo "${_CYAN}Vérification de la structure des modules...${_END}"
-	@for module in $(MODULES); do \
-		if grep -q "^$$module-help" make/$$module.mk; then \
-			echo "${_GREEN}Module $$module : OK !${_END}"; \
-		else \
-			echo "${_RED}Module $$module : Section d'aide manquante.${_END}"; \
-			exit 1; \
-		fi; \
-	done
-
-# Autocomplétion pour bash
-generate-completion:
-	@echo "complete -W '$(COMMANDS)' make" > make-completion.bash
+debug-modules:
+	@printf "Modules définis : $(MODULES)"
+	@printf "\nRecherche des fichiers dans make/ :"
+	@ls -la make/*.mk
 
 # Vérification de l'environnement
 check-env:
 	@if [ ! -f .env ]; then \
-		echo "${_RED}Fichier .env manquant${_END}"; \
+		printf "$(_RED)Fichier .env manquant$(_END)\n"; \
 		exit 1; \
 	fi
-	@echo "${_GREEN}Environnement : OK !${_END}"
-
-# Liste de toutes les commandes disponibles
-list-commands:
-	@echo "${_CYAN}Commandes disponibles :${_END}"
-	@echo "$(COMMANDS)" | tr ' ' '\n' | sort
+	@printf "$(_GREEN)Environnement : OK !$(_END)\n"
 
 # Alias utiles
 start: up
@@ -106,32 +58,32 @@ status: monitor-health
 
 # VPN
 vpn-install:
-	@echo "${_CYAN}Installation de Wireguard...${_END}"
+	@printf "${_CYAN}Installation de Wireguard...$(_END)\n"
 	@chmod +x install-wireguard.sh
 	@sudo ./install-wireguard.sh
-	@echo "${_GREEN}Wireguard installé !${_END}"
+	@printf "$(_GREEN)Wireguard installé !$(_END)\n"
 
 vpn-client:
-	@echo "${_CYAN}Génération de la configuration client...${_END}"
-	@echo "Client public key: $(shell sudo cat /etc/wireguard/pulic.key)"
-	@echo "Server IP: $(shell curl -s ifconfig.me)"
-	@echo "${_YELLOW}Utilisez ces informations pour configurer le client WireGuard${_END}"
+	@printf "${_CYAN}Génération de la configuration client...$(_END)\n"
+	@printf "Client public key: $(shell sudo cat /etc/wireguard/pulic.key)"
+	@printf "Server IP: $(shell curl -s ifconfig.me)"
+	@printf "$(_YELLOW)Utilisez ces informations pour configurer le client WireGuard$(_END)\n"
 
 vpn-status:
-	@echo "${_CYAN}État de WireGuard${_END}"
+	@printf "${_CYAN}État de WireGuard$(_END)\n"
 	@sudo wg show
 
 # CI/CD
 gitlab-setup:
-	@echo "${_CYAN}Configuration initiale de Gitlab...${_END}"
+	@printf "${_CYAN}Configuration initiale de Gitlab...$(_END)\n"
 	@docker-compose up -d gitlab
-	@echo "${_YELLOW}Attente du démarrage de Gitlab...${_END}"
+	@printf "$(_YELLOW)Attente du démarrage de Gitlab...$(_END)\n"
 	@sleep 30
-	@echo "${_GREEN}Gitlab est prêt ! Access : https://gitlab.localhost${_END}"
-	@echo "${_YELLOW}Mot de passe root : voir GITLAB_ROOT_PASSWORD dans .env${_END}"
+	@printf "$(_GREEN)Gitlab est prêt ! Access : https://gitlab.localhost$(_END)\n"
+	@printf "$(_YELLOW)Mot de passe root : voir GITLAB_ROOT_PASSWORD dans .env$(_END)\n"
 
 # Documentation
 docs-serve:
-	@echo "${_CYAN}Démarrage du serveur de documentation...${_END}"
+	@printf "${_CYAN}Démarrage du serveur de documentation...$(_END)\n"
 	@docker-compose up -d mkdocs
-	@echo "${_GREEN}Documentation disponible sur http://docs.localhost ${_END}"
+	@printf "$(_GREEN)Documentation disponible sur http://docs.localhost $(_END)\n"

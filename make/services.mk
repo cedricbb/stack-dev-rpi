@@ -1,23 +1,36 @@
-up:
-	@echo "${_CYAN}Démarrage des services...${_END}"
+.PHONY: services-help services-up services-down services-restart \
+services-status services-logs services-isolate service-recreate
+
+services-help:
+	$(call print_title, Commandes de gestion des services)
+	$(call print_command, services-up, Démarrer les services)
+	$(call print_command, services-down, Arrêter les services)
+	$(call print_command, services-restart, Redémarrer les services)
+	$(call print_command, services-status, Afficher l'état des services)
+	$(call print_command, services-logs, Afficher les logs des services)
+	$(call print_command, services-isolate, Isoler un service)
+	$(call print_command, service-recreate, Recréer un service)
+
+services-up:
+	@printf "$(_CYAN)Démarrage des services...$(_END)\n"
 	@$(DOCKER_COMPOSE) up -d
-	@echo "${_GREEN}Services démarrés !${_END}"
+	@printf "$(_GREEN)Services démarrés !$(_END)\n"
 	@make status
 
-down:
-	@echo "${_CYAN}Arrêt des services...${_END}"
+services-down:
+	@printf "$(_CYAN)Arrêt des services...$(_END)\n"
 	@$(DOCKER_COMPOSE) down
-	@echo "${_GREEN}Services Arrêtés !${_END}"
+	@printf "$(_GREEN)Services Arrêtés !$(_END)\n"
 
-restart:
+services-restart:
 	@make down
 	@make up
 
-status:
-	@echo "${_CYAN}État des services :${_END}"
+services-status:
+	@printf "$(_CYAN)État des services :$(_END)\n"
 	@$(DOCKER_COMPOSE) ps
 
-logs:
+services-logs:
 	@if [ "$(s)" ]; then \
 		$(DOCKER_COMPOSE) logs -f $(s); \
 	else \
@@ -26,12 +39,12 @@ logs:
 
 # Commandes de service
 service-isolate:
-	@echo "${_CYAN}Isolation du service $(s)...${_END}"
+	@printf "$(_CYAN)Isolation du service $(s)...$(_END)\n"
 	@docker-compose stop $(s)
 	@docker network disconnect backend $(s) || true
-	@echo "${_GREEN}Service isolé.${_END}"
+	@printf "$(_GREEN)Service isolé.$(_END)\n"
 
-recreate:
-	@echo "${_CYAN}Re-création du service $(s)...${_END}"
+service-recreate:
+	@printf "$(_CYAN)Re-création du service $(s)...$(_END)\n"
 	@docker-compose up -d --force-recreate --no-deps $(s)
-	@echo "${_GREEN}Service re-créé.${_END}"
+	@printf "$(_GREEN)Service re-créé.$(_END)\n"

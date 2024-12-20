@@ -1,25 +1,77 @@
+.PHONY: install-help install install-check install-deps- install-dirs install-ssl install-network
+
+install-help:
+	$(call print_title, Commandes d'installation)
+	$(call print_command, install, Installe l'environnement de développement)
+	$(call print_command, install-check, Vérifie si toutes les dépendances sont installées)
+	$(call print_command, install-ssl, Génère les certificats SSL)
+	$(call print_command, install-deps, Crée le réseau Docker)
+	$(call print_command, install-dirs, Crée les dossiers nécessaires)
+	$(call print_command, install-network, Crée le réseau Docker)
+
 install:
-	@echo "${_CYAN}Création des dossiers...${_END}"
+	@printf "$(_CYAN)Création des dossiers...$(_END)\n"
 	mkdir -p config/{prometheus,grafana,traefik/certs,nginx,php,mariadb,postgres,redis}
 	mkdir -p projects/{php,node,react,next,nuxt,angular,flutter}
 	mkdir -p backups logs/{traefik, nginx, fail2ban} data/{grafana, prometheus, gitlab, portainer}
-	@echo "${_CYAN}Création du réseau docker...${_END}"
+	@printf "$(_CYAN)Création du réseau docker...$(_END)\n"
 	docker network create backend || true
-	@echo "${_GREEN}Installation terminée !${_END}"
+	@printf "$(_GREEN)Installation terminée !$(_END)\n"
 
-ssl:
-	@echo "${_CYAN}Génération des certificats SSL...${_END}"
+install-check:
+	@printf "$(_CYAN)Vérification des prérequis...$(_END)\n"
+	@printf "$(_YELLOW)Vérification de Docker...$(_END)\n"
+	@docker --version
+	@printf "$(_YELLOW)Vérification de Docker Compose...$(_END)\n"
+	@docker-compose --version
+	@printf "$(_YELLOW)Vérification de Git...$(_END)\n"
+	@git --version
+	@printf "$(_YELLOW)Vérification de OpenSSL...$(_END)\n"
+	@openssl version
+	@printf "$(_GREEN)Prérequis vérifiés !$(_END)\n"
+
+install-deps:
+	@printf "$(_CYAN)Installation des dépendances...$(_END)\n"
+	@printf "$(_YELLOW)Installation de Docker...$(_END)\n"
+	@curl -fsSL https://get.docker.com -o get-docker.sh
+	@sh get-docker.sh
+	@printf "$(_YELLOW)Installation de Docker Compose...$(_END)\n"
+	@sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+	@sudo chmod +x /usr/local/bin/docker-compose
+	@printf "$(_YELLOW)Installation de Git...$(_END)\n"
+	@sudo apt-get update
+	@sudo apt-get install -y git
+	@printf "$(_YELLOW)Installation de OpenSSL
+	@sudo apt-get install -y openssl
+	@printf "$(_YELLOW)Installation de Make...$(_END)\n"
+	@sudo apt-get install -y make
+	@printf "$(_GREEN)Dépendances installées !$(_END)\n"
+
+install-dirs:
+	@printf "$(_CYAN)Création des dossiers...$(_END)\n"
+	mkdir -p config/{prometheus,grafana,traefik/certs,nginx,php,mariadb,postgres,redis}
+	mkdir -p projects/{php,node,react,next,nuxt,angular,flutter}
+	mkdir -p backups logs/{traefik, nginx, fail2ban} data/{grafana, prometheus, gitlab, portainer}
+	@printf "$(_GREEN)Dossiers créés !$(_END)\n"
+
+install-ssl:
+	@printf "$(_CYAN)Génération des certificats SSL...$(_END)\n"
 	@chmod +x ssl.sh
 	@./ssl.sh
-	@echo "${_GREEN}Certificats et SSL générés !${_END}"
+	@printf "$(_GREEN)Certificats et SSL générés !$(_END)\n"
+
+install-network:
+	@printf "$(_CYAN)Création du réseau Docker...$(_END)\n"
+	docker network create backend || true
+	@printf "$(_GREEN)Réseau Docker créé !$(_END)\n"
 
 # Générer des mots de passe sécurisés
 generate-password:
-	@echo "${_CYAN}Génération des mots de passe sécurisés...${_NC}"
+	@printf "$(_CYAN)Génération des mots de passe sécurisés...$(_END)\n"
 	@if [ ! -f  .env ]; then \
 		cp .env.example .env; \
 	fi
-	@echo "${_YELLOW}Génération des nouveaux mots de passe...${_NC}"
+	@printf "$(_YELLOW)Génération des nouveaux mots de passe...$(_END)\n"
 	# Génération des mots de passe
 	@DATABASE_PASSWORD=$$(openssl rand -base64 32) && \
 	POSTGRES_PASSWORD=$$(openssl rand -base64 32) && \
@@ -33,19 +85,19 @@ generate-password:
 	sed -i "s/GITLAB_ROOT_PASSWORD=.*/GITLAB_ROOT_PASSWORD=$$GITLAB_ROOT_PASSWORD/" .env && \
 	sed -i "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$$REDIS_PASSWORD/" .env && \
 	sed -i "s/VSCODDE_PASSWORD=.*/VSCODDE_PASSWORD=$$VSCODDE_PASSWORD/" .env &&
-	echo "${_GREEN}Mots de passe générés et enregistrés dans le fichier .env${_NC}"
-	@echo "${_YELLOW}Important: Conservez soigneusement les mots de passe générés. Ils ne pourront être récupérés ultérieurement.${_NC}"
+	printf "$(_GREEN)Mots de passe générés et enregistrés dans le fichier .env$(_END)\n"
+	@printf "$(_YELLOW)Important: Conservez soigneusement les mots de passe générés. Ils ne pourront être récupérés ultérieurement.$(_END)\n"
 
 # Appliquer les configurations
 apply-config:
-	@echo "${_BLUE}Application des configurations...${_NC}"
+	@printf "$(_BLUE)Application des configurations...$(_END)\n"
 
 	# Création des dossiers nécessaires
-	@echo "${_YELLOW}Création des dossiers de configuration...${_NC}"
+	@printf "$(_YELLOW)Création des dossiers de configuration...$(_END)\n"
 	@mkdir -p config/{prometheus,grafana,traefik/certs,nginx,php,mariadb,postgres,redis}
 
 	# Copie et configuration des fichiers
-	@echo "${_YELLOW}Copie des fichiers de configuration...${_NC}"
+	@printf "$(_YELLOW)Copie des fichiers de configuration...$(_END)\n"
 	# Prometheus
 	@cp -n config/prometheus/prometheus.yml config/prometheus/prometheus.yml.backup 2>/dev/null || true
 	@envsubst < config/prometheus/prometheus.yml > config/prometheus/prometheus.yml.tmp
@@ -68,20 +120,20 @@ apply-config:
 	@mv config/postgres/postgresql.conf.tmp config/postgres/postgresql.conf
 
 	# Configuration des permissions
-	@echo "${_YELLOW}Configuration des permissions...${_NC}"
+	@printf "$(_YELLOW)Configuration des permissions...$(_END)\n"
 	@chmod 600 config/traefik/certs/*
 	@chmod 644 config/**/*.{yml,yaml,conf,ini,toml}
 
 	# Redémarrage des services si nécessaires
-	@echo "${_YELLOW}Voulez-vous redémarrer les services pour appliquer les configurations ? [y/N]${_NC}"
+	@printf "$(_YELLOW)Voulez-vous redémarrer les services pour appliquer les configurations ? [y/N]$(_END)\n"
 	@read -p  "" answer; \
 	@if [ "$${answer}" = "y" ] || [ "$${answer}" = "Y" ]; then \
-		echo "${_BLUE}Redémarrage des services...${_NC}"
+		printf "$(_BLUE)Redémarrage des services...$(_END)\n"
 		docker-compose down && docker-compose up -d; \
-		echo "${_GREEN}Services redémarrés avec les nouvelles configurations !${_NC}"
+		printf "$(_GREEN)Services redémarrés avec les nouvelles configurations !$(_END)\n"
 	else \
-		echo "${_YELLOW}Les services n'ont pas été redémarrés. Les changements seront appliqués au prochain redémarrage.${_NC}"
+		printf "$(_YELLOW)Les services n'ont pas été redémarrés. Les changements seront appliqués au prochain redémarrage.$(_END)\n"
 	fi
 
-	@echo "${_GREEN}Configuration appliquée avec succès !${_NC}"
-	@echo "${_YELLOW}Important: N'oubliez pas de vérifier les fichiers de configuration et de redémarrer les services si nécessaire.${_NC}"
+	@printf "$(_GREEN)Configuration appliquée avec succès !$(_END)\n"
+	@printf "$(_YELLOW)Important: N'oubliez pas de vérifier les fichiers de configuration et de redémarrer les services si nécessaire.$(_END)\n"
